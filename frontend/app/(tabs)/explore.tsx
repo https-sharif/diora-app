@@ -1,8 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, Modal, Dimensions, Animated, PanResponder, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  Modal,
+  Dimensions,
+  Animated,
+  PanResponder,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { BlurView } from 'expo-blur';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Filter, X, Check, Star, MessageCircle, Store, Bookmark, SearchX } from 'lucide-react-native';
+import {
+  Search,
+  Filter,
+  X,
+  Check,
+  Star,
+  MessageCircle,
+  Store,
+  Bookmark,
+  SearchX,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useShopping } from '@/hooks/useShopping';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -15,7 +40,6 @@ import { Theme } from '@/types/Theme';
 import { mockUsers } from '@/mock/User';
 import { mockShops } from '@/mock/Shop';
 import { mockProducts } from '@/mock/Product';
-import { mockPosts } from '@/mock/Post';
 import { useAuth } from '@/hooks/useAuth';
 import axios from 'axios';
 import { API_URL } from '@/constants/api';
@@ -28,7 +52,16 @@ const filterOptions = {
   priceRange: ['All', '$0-$50', '$50-$100', '$100-$200', '$200+'],
   rating: ['All', '4+ Stars', '4.5+ Stars', '4.8+ Stars'],
   availability: ['All', 'In Stock', 'On Sale', 'New Arrivals'],
-  style: ['All', 'Vintage', 'Modern', 'Casual', 'Formal', 'Streetwear', 'Boho', 'Minimalist'],
+  style: [
+    'All',
+    'Vintage',
+    'Modern',
+    'Casual',
+    'Formal',
+    'Streetwear',
+    'Boho',
+    'Minimalist',
+  ],
   verification: ['All', 'Verified Only', 'Unverified'],
   followers: ['All', '0-1K', '1K-10K', '10K-50K', '50K+'],
   likes: ['All', '0-100', '100-500', '500-1000', '1000+'],
@@ -39,509 +72,509 @@ const createStyles = (theme: Theme) => {
   const bookmarkInactiveColor = Color(theme.text).alpha(0.5).toString();
 
   return StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-    paddingTop: -100,
-    paddingBottom: -100,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: theme.background,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.background,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    color: theme.text,
-    marginBottom: 16,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.card,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: theme.text,
-  },
-  filterButton: {
-    padding: 4,
-  },
-  content: {
-    flex: 1,
-  },
-  section: {
-    paddingVertical: 20,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontFamily: 'Inter-Bold',
-    color: theme.text,
-    marginBottom: 16,
-    paddingHorizontal: 16,
-  },
-  userCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    shadowColor: theme.text,
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+      paddingTop: -100,
+      paddingBottom: -100,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  userAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-  },
-  userInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  userNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  userName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.text,
-  },
-  verifiedBadgeContainer: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userFullName: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: theme.textSecondary,
-    marginTop: 4,
-    lineHeight: 18,
-  },
-  userLocation: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: theme.textSecondary,
-    marginTop: 4,
-  },
-  userFollowers: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.textSecondary,
-    marginTop: 4,
-  },
-  followButton: {
-    backgroundColor: theme.text,
-    borderRadius: 20,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-  },
-  followButtonText: {
-    color: theme.background,
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  followingButton: {
-    backgroundColor: theme.card,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  followingButtonText: {
-    color: theme.text,
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-  },
-  productsContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-  },
-  productCard: {
-    width: '48%',
-    backgroundColor: theme.card,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: theme.text,
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    header: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: theme.background,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.background,
     },
-    marginBottom: 12,
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  productImageContainer: {
-    position: 'relative',
-  },
-  productImage: {
-    width: '100%',
-    height: 160,
-  },
-  discountBadge: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    backgroundColor: '#FF3B30',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    zIndex: 10,
-  },
-  discountText: {
-    color: '#fff',
-    fontSize: 12,
-    fontFamily: 'Inter-Bold',
-  },
-  outOfStockOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: outOfStockOverlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 5,
-  },
-  outOfStockText: {
-    color: theme.background,
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-  },
-  wishlistButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: bookmarkInactiveColor,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.border,
-    padding: 8,
-    zIndex: 15,
-  },
-  wishlistButtonActive: {
-    backgroundColor: theme.text,
-  },
-  productInfo: {
-    padding: 12,
-  },
-  shopInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 6,
-  },
-  shopAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  shopName: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: theme.textSecondary,
-  },
-  productName: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.text,
-    marginBottom: 6,
-    lineHeight: 18,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  productPrice: {
-    fontSize: 16,
-    fontFamily: 'Inter-Bold',
-    color: theme.text,
-  },
-  originalPrice: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: theme.textSecondary,
-    textDecorationLine: 'line-through',
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    gap: 4,
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: theme.textSecondary,
-  },
-  gridRow: {
-    paddingHorizontal: 16,
-    width: '99%',
-  },
-  gridRowProduct: {
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    width: '100%',
-  },
-  gridItem: {
-    width: '33%',
-    aspectRatio: 1,
-    borderWidth: 1,
-    borderColor: theme.background,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: theme.card,
-  },
-  noResults: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  noResultsIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  noResultsText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.textSecondary,
-    marginBottom: 8,
-  },
-  noResultsSubtext: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: theme.textSecondary,
-  },
-  bottomPadding: {
-    height: 100,
-  },
-  filterModal: {
-    flex: 1,
-    backgroundColor: theme.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: 20,
-    overflow: 'hidden',
-  },
-  filterHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.border,
-  },
-  filterHeaderTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: theme.text,
-  },
-  filterContent: {
-    flex: 1,
-    padding: 16,
-  },
-  filterSection: {
-    marginBottom: 32,
-  },
-  filterTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: theme.text,
-    marginBottom: 16,
-  },
-  filterOptions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  filterOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: theme.border,
-    backgroundColor: theme.background,
-    gap: 6,
-  },
-  filterOptionActive: {
-    backgroundColor: theme.accent,
-    borderColor: theme.accent,
-  },
-  filterOptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: theme.text,
-  },
-  filterOptionTextActive: {
-    color: '#000',
-  },
-  filterCheck: {
-    marginLeft: 4,
-  },
-  filterFooter: {
-    flexDirection: 'row',
-    padding: 16,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: theme.border,
-  },
-  clearFiltersButton: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  clearFiltersText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#000',
-  },
-  applyFiltersText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#fff',
-  },
-  applyFiltersButton: {
-    flex: 1,
-    backgroundColor: '#000',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: theme.border,
-    borderRadius: 12,
-  },
-  enlargedContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    title: {
+      fontSize: 28,
+      fontFamily: 'Inter-Bold',
+      color: theme.text,
+      marginBottom: 16,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      height: 44,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: theme.text,
+    },
+    filterButton: {
+      padding: 4,
+    },
+    content: {
+      flex: 1,
+    },
+    section: {
+      paddingVertical: 20,
+    },
+    sectionTitle: {
+      fontSize: 22,
+      fontFamily: 'Inter-Bold',
+      color: theme.text,
+      marginBottom: 16,
+      paddingHorizontal: 16,
+    },
+    userCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 16,
+      marginHorizontal: 16,
+      marginBottom: 12,
+      shadowColor: theme.text,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    userAvatar: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+    },
+    userInfo: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    userNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    userName: {
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+      color: theme.text,
+    },
+    verifiedBadgeContainer: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: '#007AFF',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    userFullName: {
+      fontSize: 14,
+      fontFamily: 'Inter-Regular',
+      color: theme.textSecondary,
+      marginTop: 4,
+      lineHeight: 18,
+    },
+    userLocation: {
+      fontSize: 12,
+      fontFamily: 'Inter-Regular',
+      color: theme.textSecondary,
+      marginTop: 4,
+    },
+    userFollowers: {
+      fontSize: 14,
+      fontFamily: 'Inter-Medium',
+      color: theme.textSecondary,
+      marginTop: 4,
+    },
+    followButton: {
+      backgroundColor: theme.text,
+      borderRadius: 20,
+      paddingHorizontal: 20,
+      paddingVertical: 8,
+    },
+    followButtonText: {
+      color: theme.background,
+      fontSize: 14,
+      fontFamily: 'Inter-SemiBold',
+    },
+    followingButton: {
+      backgroundColor: theme.card,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    followingButtonText: {
+      color: theme.text,
+      fontSize: 14,
+      fontFamily: 'Inter-SemiBold',
+    },
+    productsContainer: {
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    productCard: {
+      width: '48%',
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      overflow: 'hidden',
+      shadowColor: theme.text,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      marginBottom: 12,
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    productImageContainer: {
+      position: 'relative',
+    },
+    productImage: {
+      width: '100%',
+      height: 160,
+    },
+    discountBadge: {
+      position: 'absolute',
+      top: 8,
+      left: 8,
+      backgroundColor: '#FF3B30',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      zIndex: 10,
+    },
+    discountText: {
+      color: '#fff',
+      fontSize: 12,
+      fontFamily: 'Inter-Bold',
+    },
+    outOfStockOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: outOfStockOverlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 5,
+    },
+    outOfStockText: {
+      color: theme.background,
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+    },
+    wishlistButton: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      backgroundColor: bookmarkInactiveColor,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 8,
+      zIndex: 15,
+    },
+    wishlistButtonActive: {
+      backgroundColor: theme.text,
+    },
+    productInfo: {
+      padding: 12,
+    },
+    shopInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 8,
+      gap: 6,
+    },
+    shopAvatar: {
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+    },
+    shopName: {
+      fontSize: 12,
+      fontFamily: 'Inter-Medium',
+      color: theme.textSecondary,
+    },
+    productName: {
+      fontSize: 14,
+      fontFamily: 'Inter-SemiBold',
+      color: theme.text,
+      marginBottom: 6,
+      lineHeight: 18,
+    },
+    priceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 4,
+    },
+    productPrice: {
+      fontSize: 16,
+      fontFamily: 'Inter-Bold',
+      color: theme.text,
+    },
+    originalPrice: {
+      fontSize: 14,
+      fontFamily: 'Inter-Regular',
+      color: theme.textSecondary,
+      textDecorationLine: 'line-through',
+    },
+    ratingRow: {
+      flexDirection: 'row',
+      gap: 4,
+      position: 'absolute',
+      bottom: 16,
+      right: 16,
+    },
+    ratingText: {
+      fontSize: 12,
+      fontFamily: 'Inter-Medium',
+      color: theme.textSecondary,
+    },
+    gridRow: {
+      paddingHorizontal: 16,
+      width: '99%',
+    },
+    gridRowProduct: {
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      width: '100%',
+    },
+    gridItem: {
+      width: '33%',
+      aspectRatio: 1,
+      borderWidth: 1,
+      borderColor: theme.background,
+      overflow: 'hidden',
+      position: 'relative',
+    },
+    gridImage: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: theme.card,
+    },
+    noResults: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    noResultsIconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: theme.card,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 24,
+    },
+    noResultsText: {
+      fontSize: 18,
+      fontFamily: 'Inter-SemiBold',
+      color: theme.textSecondary,
+      marginBottom: 8,
+    },
+    noResultsSubtext: {
+      fontSize: 14,
+      fontFamily: 'Inter-Regular',
+      color: theme.textSecondary,
+    },
+    bottomPadding: {
+      height: 100,
+    },
+    filterModal: {
+      flex: 1,
+      backgroundColor: theme.card,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: 20,
+      overflow: 'hidden',
+    },
+    filterHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    filterHeaderTitle: {
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: theme.text,
+    },
+    filterContent: {
+      flex: 1,
+      padding: 16,
+    },
+    filterSection: {
+      marginBottom: 32,
+    },
+    filterTitle: {
+      fontSize: 18,
+      fontFamily: 'Inter-SemiBold',
+      color: theme.text,
+      marginBottom: 16,
+    },
+    filterOptions: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    filterOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 25,
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: theme.background,
+      gap: 6,
+    },
+    filterOptionActive: {
+      backgroundColor: theme.accent,
+      borderColor: theme.accent,
+    },
+    filterOptionText: {
+      fontSize: 14,
+      fontFamily: 'Inter-Medium',
+      color: theme.text,
+    },
+    filterOptionTextActive: {
+      color: '#000',
+    },
+    filterCheck: {
+      marginLeft: 4,
+    },
+    filterFooter: {
+      flexDirection: 'row',
+      padding: 16,
+      gap: 12,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+    },
+    clearFiltersButton: {
+      flex: 1,
+      backgroundColor: '#f8f9fa',
+      borderRadius: 12,
+      paddingVertical: 16,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    clearFiltersText: {
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+      color: '#000',
+    },
+    applyFiltersText: {
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+      color: '#fff',
+    },
+    applyFiltersButton: {
+      flex: 1,
+      backgroundColor: '#000',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 12,
+    },
+    enlargedContainer: {
+      flex: 1,
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
 
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  enlargedBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  enlargedContent: {
-    width: width * 0.9,
-    maxHeight: height * 0.8,
-    backgroundColor: 'rgba(55, 55, 55, 0.8)',
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  enlargedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  enlargedUserInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  enlargedUserAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  enlargedUsername: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#fff',
-  },
-  enlargedTimestamp: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#ccc',
-  },
-  enlargedImage: {
-    width: '100%',
-    height: width * 0.9,
-    resizeMode: 'contain',
-  },
-  enlargedFooter: {
-    padding: 16,
-  },
-  enlargedActions: {
-    flexDirection: 'row',
-    gap: 20,
-    marginBottom: 12,
-  },
-  enlargedStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  enlargedStatText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-  },
-  enlargedCaption: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-  enlargedTags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  enlargedTag: {
-    color: theme.textSecondary,
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-  },
-});
-}
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    enlargedBackdrop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
+    enlargedContent: {
+      width: width * 0.9,
+      maxHeight: height * 0.8,
+      backgroundColor: 'rgba(55, 55, 55, 0.8)',
+      borderRadius: 20,
+      overflow: 'hidden',
+    },
+    enlargedHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+    },
+    enlargedUserInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    enlargedUserAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+    },
+    enlargedUsername: {
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+      color: '#fff',
+    },
+    enlargedTimestamp: {
+      fontSize: 12,
+      fontFamily: 'Inter-Regular',
+      color: '#ccc',
+    },
+    enlargedImage: {
+      width: '100%',
+      height: width * 0.9,
+      resizeMode: 'contain',
+    },
+    enlargedFooter: {
+      padding: 16,
+    },
+    enlargedActions: {
+      flexDirection: 'row',
+      gap: 20,
+      marginBottom: 12,
+    },
+    enlargedStat: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    enlargedStatText: {
+      color: '#fff',
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+    },
+    enlargedCaption: {
+      color: '#fff',
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      lineHeight: 22,
+      marginBottom: 12,
+    },
+    enlargedTags: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    enlargedTag: {
+      color: theme.textSecondary,
+      fontSize: 14,
+      fontFamily: 'Inter-Medium',
+    },
+  });
+};
 
 export default function ExploreScreen() {
-  const { addToWishlist, isInWishlist, removeFromWishlist } = useShopping();
+  const { addToWishlist, isInWishlist } = useShopping();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [enlargedPost, setEnlargedPost] = useState<Post | null>(null);
@@ -553,48 +586,123 @@ export default function ExploreScreen() {
   const [exploreData, setExploreData] = useState({
     trendingUsers: [] as User[],
     trendingShops: mockShops.slice(0, 4) as ShopProfile[],
-    trendingProducts: mockProducts.slice(0, 4) as Product[],
-    exploreGrid: mockPosts.slice(0, 9) as Post[],
+    trendingProducts: [] as Product[],
+    trendingPosts: [] as Post[],
   });
 
   const [loading, setLoading] = useState({
     trendingUsers: false,
     trendingShops: false,
     trendingProducts: false,
-    exploreGrid: false,
+    trendingPosts: false,
   });
-
 
   const styles = createStyles(theme);
   const isLiked = user?.likedPosts?.includes(enlargedPost?._id || '');
 
   useEffect(() => {
     if (!user) return;
-    const fetchTrendingData = async () => {
-      setLoading(prevState => ({ ...prevState, trendingUsers: true }));
+
+    const fetchTrendingUser = async () => {
+      setLoading((prevState) => ({ ...prevState, trendingUsers: true }));
 
       try {
         const response = await axios.get(`${API_URL}/api/user/trending`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if(response.data.status) {
-          setExploreData(prevState => ({
+        if (response.data.status) {
+          setExploreData((prevState) => ({
             ...prevState,
-            trendingUsers: response.data.trendingUsers
+            trendingUsers: response.data.trendingUsers,
           }));
         }
-        
-      }
-      catch (err : any) {
-        console.error('Error fetching trending user data: ', err.response?.data || err.message);
-      }
-      finally {
-        setLoading(prevState => ({ ...prevState, trendingUsers: false }));
+      } catch (err: any) {
+        console.error(
+          'Error fetching trending user data: ',
+          err.response?.data || err.message
+        );
+      } finally {
+        setLoading((prevState) => ({ ...prevState, trendingUsers: false }));
       }
     };
 
-    fetchTrendingData();
+    const fetchTrendingShops = async () => {
+      setLoading((prevState) => ({ ...prevState, trendingShops: true }));
+
+      try {
+        const response = await axios.get(`${API_URL}/api/shop/trending`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.status) {
+          setExploreData((prevState) => ({
+            ...prevState,
+            trendingShops: response.data.trendingShops,
+          }));
+        }
+      } catch (err: any) {
+        console.error(
+          'Error fetching trending shops data: ',
+          err.response?.data || err.message
+        );
+      } finally {
+        setLoading((prevState) => ({ ...prevState, trendingShops: false }));
+      }
+    };
+
+    const fetchTrendingProducts = async () => {
+      setLoading((prevState) => ({ ...prevState, trendingProducts: true }));
+
+      try {
+        const response = await axios.get(`${API_URL}/api/product/trending`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.status) {
+          setExploreData((prevState) => ({
+            ...prevState,
+            trendingProducts: response.data.trendingProducts,
+          }));
+        }
+      } catch (err: any) {
+        console.error(
+          'Error fetching trending products data: ',
+          err.response?.data || err.message
+        );
+      } finally {
+        setLoading((prevState) => ({ ...prevState, trendingProducts: false }));
+      }
+    };
+
+    const fetchTrendingPosts = async () => {
+      setLoading((prevState) => ({ ...prevState, trendingPosts: true }));
+
+      try {
+        const response = await axios.get(`${API_URL}/api/post/trending`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.status) {
+          setExploreData((prevState) => ({
+            ...prevState,
+            trendingPosts: response.data.trendingPosts,
+          }));
+        }
+      } catch (err: any) {
+        console.error(
+          'Error fetching trending posts data: ',
+          err.response?.data || err.message
+        );
+      } finally {
+        setLoading((prevState) => ({ ...prevState, trendingPosts: false }));
+      }
+    };
+
+    fetchTrendingUser();
+    fetchTrendingShops();
+    fetchTrendingProducts();
+    fetchTrendingPosts();
   }, []);
 
   const [filters, setFilters] = useState({
@@ -613,22 +721,24 @@ export default function ExploreScreen() {
     let filteredUsers = exploreData.trendingUsers;
     let filteredShops = exploreData.trendingShops;
     let filteredProducts = exploreData.trendingProducts;
-    let filteredPosts = exploreData.exploreGrid;
+    let filteredPosts = exploreData.trendingPosts;
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filteredUsers = filteredUsers.filter(user =>
-        user.username.toLowerCase().includes(query) ||
-        user.fullName.toLowerCase().includes(query)
+      filteredUsers = filteredUsers.filter(
+        (user) =>
+          user.username.toLowerCase().includes(query) ||
+          user.fullName.toLowerCase().includes(query)
       );
-      filteredShops = filteredShops.filter(user =>
+      filteredShops = filteredShops.filter((user) =>
         user.username.toLowerCase().includes(query)
       );
-      filteredProducts = filteredProducts.filter(product =>
-        product.name.toLowerCase().includes(query) ||
-        product.brand.toLowerCase().includes(query)
+      filteredProducts = filteredProducts.filter(
+        (product) =>
+          product.name.toLowerCase().includes(query) ||
+          product.shopId.name.toLowerCase().includes(query)
       );
-      filteredPosts = filteredPosts.filter(post =>
+      filteredPosts = filteredPosts.filter((post) =>
         post.caption?.toLowerCase().includes(query)
       );
     }
@@ -656,7 +766,7 @@ export default function ExploreScreen() {
 
     // Price range filter for products
     if (filters.priceRange !== 'All' && filteredProducts.length > 0) {
-      filteredProducts = filteredProducts.filter(product => {
+      filteredProducts = filteredProducts.filter((product) => {
         const price = product.price;
         switch (filters.priceRange) {
           case '$0-$50':
@@ -676,17 +786,19 @@ export default function ExploreScreen() {
     // Rating filter
     if (filters.rating !== 'All') {
       const minRating = parseFloat(filters.rating.split('+')[0]);
-      filteredProducts = filteredProducts.filter(product => product.rating >= minRating);
+      filteredProducts = filteredProducts.filter(
+        (product) => product.rating >= minRating
+      );
     }
 
     // Availability filter
     if (filters.availability !== 'All') {
-      filteredProducts = filteredProducts.filter(product => {
+      filteredProducts = filteredProducts.filter((product) => {
         switch (filters.availability) {
           case 'In Stock':
             return product.stock > 0;
           case 'On Sale':
-            if(!product.discount) return false;
+            if (!product.discount) return false;
             return product.discount > 0;
           case 'New Arrivals':
             return true;
@@ -698,59 +810,65 @@ export default function ExploreScreen() {
 
     if (filters.style !== 'All') {
       const style = filters.style.toLowerCase();
-      filteredProducts = filteredProducts.filter(product =>
+      filteredProducts = filteredProducts.filter((product) =>
         product.name.toLowerCase().includes(style)
       );
-      filteredPosts = filteredPosts.filter(post =>
+      filteredPosts = filteredPosts.filter((post) =>
         post.caption?.toLowerCase().includes(style)
       );
     }
 
     if (filters.verification !== 'All') {
       if (filters.verification === 'Verified Only') {
-        filteredUsers = filteredUsers.filter(user => user.isVerified);
+        filteredUsers = filteredUsers.filter((user) => user.isVerified);
       } else {
-        filteredUsers = filteredUsers.filter(user => !user.isVerified);
+        filteredUsers = filteredUsers.filter((user) => !user.isVerified);
       }
     }
 
     if (filters.followers !== 'All') {
       const followersRange = filters.followers.split('-');
-      filteredUsers = filteredUsers.filter(user => {
+      filteredUsers = filteredUsers.filter((user) => {
         const followersCount = user.followers.length;
         const minimum = parseFloat(followersRange[0]);
-        const maximum = followersRange[1] ? parseFloat(followersRange[1]) : Infinity;
+        const maximum = followersRange[1]
+          ? parseFloat(followersRange[1])
+          : Infinity;
         return followersCount >= minimum && followersCount < maximum;
       });
 
-      filteredShops = filteredShops.filter(user => {
-        const followersCount = user.followers.length;
+      filteredShops = filteredShops.filter((user) => {
+        const followersCount = user.followers;
         const minimum = parseFloat(followersRange[0]);
-        const maximum = followersRange[1] ? parseFloat(followersRange[1]) : Infinity;
+        const maximum = followersRange[1]
+          ? parseFloat(followersRange[1])
+          : Infinity;
         return followersCount >= minimum && followersCount < maximum;
       });
     }
 
     if (filters.likes !== 'All') {
       const likesRange = filters.likes.split('-');
-      filteredPosts = filteredPosts.filter(post => {
+      filteredPosts = filteredPosts.filter((post) => {
         const likesCount = post.stars;
-        const minimum = parseFloat(likesRange[0].replace('+', '')) * 1000;
-        const maximum = likesRange[1] ? parseFloat(likesRange[1]) * 1000 : Infinity;
         if (likesRange.length === 1) {
           return likesCount >= parseFloat(likesRange[0]);
         } else {
-          return likesCount >= parseFloat(likesRange[0]) && likesCount < parseFloat(likesRange[1]);
+          return (
+            likesCount >= parseFloat(likesRange[0]) &&
+            likesCount < parseFloat(likesRange[1])
+          );
         }
       });
     }
 
-    return { filteredUsers, filteredProducts, filteredPosts , filteredShops};
+    return { filteredUsers, filteredProducts, filteredPosts, filteredShops };
   };
 
-  const { filteredUsers, filteredProducts, filteredPosts, filteredShops } = applyFilters();
+  const { filteredUsers, filteredProducts, filteredPosts, filteredShops } =
+    applyFilters();
 
-  const handleLongPress = (post : Post) => {
+  const handleLongPress = (post: Post) => {
     setEnlargedPost(post);
     Animated.parallel([
       Animated.spring(scaleAnim, {
@@ -815,60 +933,87 @@ export default function ExploreScreen() {
   });
 
   const renderShopCard = ({ item }: { item: ShopProfile }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.userCard}
-      onPress={() => router.push(`/shop/${item.id}`)}
+      onPress={() => router.push(`/shop/${item._id}`)}
     >
       <Image source={{ uri: item.logoUrl }} style={styles.userAvatar} />
       <View style={styles.userInfo}>
         <View style={styles.userNameRow}>
           <Text style={styles.userName}>{item.username}</Text>
-          { item.isVerified && 
+          {item.isVerified && (
             <View style={styles.verifiedBadgeContainer}>
               <Check size={10} color="white" />
             </View>
-          }
+          )}
           <Store size={14} color="#FFD700" />
         </View>
         <Text style={styles.userLocation}>📍 {item.location}</Text>
         <Text style={styles.userFollowers}>{item.followers} followers</Text>
       </View>
-      <TouchableOpacity style={[styles.followButton, user?.following.includes(item.id) && styles.followingButton]} onPress={() => followUser(item.id)}>
-        <Text style={[styles.followButtonText, user?.following.includes(item.id) && styles.followingButtonText]}>{user?.following.includes(item.id) ? 'Following' : 'Follow'}</Text>
+      <TouchableOpacity
+        style={[
+          styles.followButton,
+          user?.following.includes(item._id) && styles.followingButton,
+        ]}
+        onPress={() => followUser(item._id)}
+      >
+        <Text
+          style={[
+            styles.followButtonText,
+            user?.following.includes(item._id) && styles.followingButtonText,
+          ]}
+        >
+          {user?.following.includes(item._id) ? 'Following' : 'Follow'}
+        </Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
-
   const renderUserCard = ({ item }: { item: User }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.userCard}
       onPress={() => {
-          router.push(`/user/${item._id}`);
+        router.push(`/user/${item._id}`);
       }}
     >
       <Image source={{ uri: item.avatar }} style={styles.userAvatar} />
       <View style={styles.userInfo}>
         <View style={styles.userNameRow}>
           <Text style={styles.userName}>{item.username}</Text>
-          { item.isVerified && 
+          {item.isVerified && (
             <View style={styles.verifiedBadgeContainer}>
               <Check size={10} color="#fff" />
             </View>
-          }
+          )}
         </View>
-          <Text style={styles.userFullName} numberOfLines={2}>{item.fullName}</Text>
+        <Text style={styles.userFullName} numberOfLines={2}>
+          {item.fullName}
+        </Text>
       </View>
-      <TouchableOpacity style={[styles.followButton, user?.following.includes(item._id) && styles.followingButton]} onPress={() => followUser(item._id)}>
-        <Text style={[styles.followButtonText, user?.following.includes(item._id) && styles.followingButtonText]}>{user?.following.includes(item._id) ? 'Following' : 'Follow'}</Text>
+      <TouchableOpacity
+        style={[
+          styles.followButton,
+          user?.following.includes(item._id) && styles.followingButton,
+        ]}
+        onPress={() => followUser(item._id)}
+      >
+        <Text
+          style={[
+            styles.followButtonText,
+            user?.following.includes(item._id) && styles.followingButtonText,
+          ]}
+        >
+          {user?.following.includes(item._id) ? 'Following' : 'Follow'}
+        </Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderProductCard = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.productCard}
-      onPress={() => router.push(`/product/${item.id}`)}
+      onPress={() => router.push(`/product/${item._id}`)}
     >
       <View style={styles.productImageContainer}>
         <Image source={{ uri: item.imageUrl[0] }} style={styles.productImage} />
@@ -884,29 +1029,33 @@ export default function ExploreScreen() {
         )}
         <TouchableOpacity
           style={[
-          styles.wishlistButton,
-          isInWishlist(item.id) && styles.wishlistButtonActive,
-        ]}
-        onPress={() => addToWishlist(item)}
-        activeOpacity={0.7}
+            styles.wishlistButton,
+            isInWishlist(item._id) && styles.wishlistButtonActive,
+          ]}
+          onPress={() => addToWishlist(item)}
+          activeOpacity={0.7}
         >
           <Bookmark
             size={16}
             color={theme.background}
-            fill={isInWishlist(item.id) ? theme.background : 'transparent'}
+            fill={isInWishlist(item._id) ? theme.background : 'transparent'}
           />
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.productInfo}>
         <View style={styles.shopInfo}>
-          <Text style={styles.shopName}>{item.brand}</Text>
+          {/* <Text style={styles.shopName}>{item.brand}</Text> */}
         </View>
-        <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+        <Text style={styles.productName} numberOfLines={2}>
+          {item.name}
+        </Text>
         <View style={styles.priceRow}>
           {item.discount ? (
             <>
-              <Text style={styles.productPrice}>${(item.price - (item.price * (item.discount / 100))).toFixed(2)}</Text>
+              <Text style={styles.productPrice}>
+                ${(item.price - item.price * (item.discount / 100)).toFixed(2)}
+              </Text>
               <Text style={styles.originalPrice}>${item.price.toFixed(2)}</Text>
             </>
           ) : (
@@ -922,7 +1071,7 @@ export default function ExploreScreen() {
   );
 
   const renderGridItem = ({ item }: { item: Post }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.gridItem}
       onPress={() => router.push(`/post/${item._id}`)}
       onLongPress={() => handleLongPress(item)}
@@ -932,7 +1081,43 @@ export default function ExploreScreen() {
     </TouchableOpacity>
   );
 
-  const renderFilterOption = (title: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, options: any[], selectedValue: string, onSelect: { (value: any): void; (value: any): void; (value: any): void; (value: any): void; (value: any): void; (value: any): void; (value: any): void; (arg0: any): void; }) => (
+  const renderFilterOption = (
+    title:
+      | string
+      | number
+      | bigint
+      | boolean
+      | React.ReactElement<unknown, string | React.JSXElementConstructor<any>>
+      | Iterable<React.ReactNode>
+      | Promise<
+          | string
+          | number
+          | bigint
+          | boolean
+          | React.ReactPortal
+          | React.ReactElement<
+              unknown,
+              string | React.JSXElementConstructor<any>
+            >
+          | Iterable<React.ReactNode>
+          | null
+          | undefined
+        >
+      | null
+      | undefined,
+    options: any[],
+    selectedValue: string,
+    onSelect: {
+      (value: any): void;
+      (value: any): void;
+      (value: any): void;
+      (value: any): void;
+      (value: any): void;
+      (value: any): void;
+      (value: any): void;
+      (arg0: any): void;
+    }
+  ) => (
     <View style={styles.filterSection}>
       <Text style={styles.filterTitle}>{title}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -967,17 +1152,19 @@ export default function ExploreScreen() {
   const renderEnlargedPost = (enlargedPost: Post) => {
     if (!enlargedPost) return null;
 
-    const user = mockUsers.find(user => user._id === enlargedPost.user._id);
-    if (!user) return null;
-
     return (
       <>
         <View style={styles.enlargedHeader}>
           <View style={styles.enlargedUserInfo}>
-            <Image source={{ uri: user.avatar }} style={styles.enlargedUserAvatar} />
+            <Image
+              source={{ uri: enlargedPost.user.avatar }}
+              style={styles.enlargedUserAvatar}
+            />
             <View>
-              <Text style={styles.enlargedUsername}>{user.username}</Text>
-              <Text style={styles.enlargedTimestamp}>{enlargedPost.createdAt}</Text>
+              <Text style={styles.enlargedUsername}>{enlargedPost.user.username}</Text>
+              <Text style={styles.enlargedTimestamp}>
+                {enlargedPost.createdAt}
+              </Text>
             </View>
           </View>
           <TouchableOpacity onPress={handleCloseEnlarged}>
@@ -985,44 +1172,58 @@ export default function ExploreScreen() {
           </TouchableOpacity>
         </View>
 
-        <Image source={{ uri: enlargedPost.imageUrl }} style={styles.enlargedImage} />
-        
+        <Image
+          source={{ uri: enlargedPost.imageUrl }}
+          style={styles.enlargedImage}
+        />
+
         <View style={styles.enlargedFooter}>
           <View style={styles.enlargedActions}>
             <View style={styles.enlargedStat}>
-              <TouchableOpacity onPress={() => {
-                likePost(enlargedPost._id)
-              }
-              }>
-                <Star size={20} color={isLiked ? '#FFD700' : '#fff'} fill={isLiked ? '#FFD700' : 'transparent'} />
+              <TouchableOpacity
+                onPress={() => {
+                  likePost(enlargedPost._id);
+                }}
+              >
+                <Star
+                  size={20}
+                  color={isLiked ? '#FFD700' : '#fff'}
+                  fill={isLiked ? '#FFD700' : 'transparent'}
+                />
               </TouchableOpacity>
               <Text style={styles.enlargedStatText}>{enlargedPost.stars}</Text>
             </View>
             <View style={styles.enlargedStat}>
-              <TouchableOpacity onPress={() => {
+              <TouchableOpacity
+                onPress={() => {
                   router.push(`/post/${enlargedPost._id}`);
                   handleCloseEnlarged();
-                }
-              }>
+                }}
+              >
                 <MessageCircle size={20} color="#fff" />
               </TouchableOpacity>
-              <Text style={styles.enlargedStatText}>{enlargedPost.comments}</Text>
+              <Text style={styles.enlargedStatText}>
+                {enlargedPost.comments}
+              </Text>
             </View>
           </View>
           <Text style={styles.enlargedCaption}>{enlargedPost.caption}</Text>
         </View>
       </>
-    )
-  }
+    );
+  };
 
- 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Explore</Text>
           <View style={styles.searchContainer}>
-            <Search size={20} color={theme.textSecondary} style={styles.searchIcon} />
+            <Search
+              size={20}
+              color={theme.textSecondary}
+              style={styles.searchIcon}
+            />
             <TextInput
               style={styles.searchInput}
               placeholder="Search users, shops, products..."
@@ -1030,7 +1231,7 @@ export default function ExploreScreen() {
               onChangeText={setSearchQuery}
               placeholderTextColor={theme.textSecondary}
             />
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.filterButton}
               onPress={() => setShowFilter(true)}
             >
@@ -1039,14 +1240,15 @@ export default function ExploreScreen() {
           </View>
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
-
+        <ScrollView
+          style={styles.content}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
           {/* Trending Users */}
           {exploreData.trendingUsers.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {searchQuery ? 'People & Shops' : 'Trending Creators'}
-              </Text>
+              <Text style={styles.sectionTitle}>Trending Creators</Text>
               {loading.trendingUsers ? (
                 <LoadingView />
               ) : (
@@ -1055,7 +1257,7 @@ export default function ExploreScreen() {
                   renderItem={renderUserCard}
                   keyExtractor={(item) => item._id}
                   scrollEnabled={false}
-              />
+                />
               )}
             </View>
           )}
@@ -1064,56 +1266,71 @@ export default function ExploreScreen() {
           {filteredShops.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Trending Shops</Text>
-              <FlatList
-                data={filteredShops}
-                renderItem={renderShopCard}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-              />
+              {loading.trendingShops ? (
+                <LoadingView />
+              ) : (
+                <FlatList
+                  data={filteredShops}
+                  renderItem={renderShopCard}
+                  keyExtractor={(item) => item._id}
+                  scrollEnabled={false}
+                />
+              )}
             </View>
           )}
 
-          {filteredProducts.length > 0 && (
+          {exploreData.trendingProducts.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Featured Products</Text>
-              <FlatList
-                data={filteredProducts}
-                renderItem={renderProductCard}
-                keyExtractor={(item) => item.id}
-                numColumns={2}
-                scrollEnabled={false}
-                columnWrapperStyle={styles.gridRowProduct}
-              />
+              {loading.trendingProducts ? (
+                <LoadingView />
+              ) : (
+                <FlatList
+                  data={exploreData.trendingProducts}
+                  renderItem={renderProductCard}
+                  keyExtractor={(item) => item._id}
+                  numColumns={2}
+                  scrollEnabled={false}
+                  columnWrapperStyle={styles.gridRowProduct}
+                />
+              )}
             </View>
           )}
 
           {/* Discover Posts */}
-          {filteredPosts.length > 0 && (
+          {exploreData.trendingPosts.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Discover</Text>
-              <FlatList
-                data={filteredPosts}
-                renderItem={renderGridItem}
-                keyExtractor={(item) => item._id}
-                numColumns={3}
-                scrollEnabled={false}
-                columnWrapperStyle={styles.gridRow}
-              />
+              {loading.trendingPosts ? (
+                <LoadingView />
+              ) : (
+                <FlatList
+                  data={exploreData.trendingPosts}
+                  renderItem={renderGridItem}
+                  keyExtractor={(item) => item._id}
+                  numColumns={3}
+                  scrollEnabled={false}
+                  columnWrapperStyle={styles.gridRow}
+                />
+              )}
             </View>
           )}
 
           {/* No Results */}
-          {exploreData.trendingUsers.length === 0 && filteredShops.length === 0 && filteredProducts.length === 0 && filteredPosts.length === 0 && (
-            <View style={styles.noResults}>
-              <View style={styles.noResultsIconContainer}>
-                <SearchX size={48} color={theme.text} />
+          {exploreData.trendingUsers.length === 0 &&
+            filteredShops.length === 0 &&
+            filteredProducts.length === 0 &&
+            filteredPosts.length === 0 && (
+              <View style={styles.noResults}>
+                <View style={styles.noResultsIconContainer}>
+                  <SearchX size={48} color={theme.text} />
+                </View>
+                <Text style={styles.noResultsText}>No results found</Text>
+                <Text style={styles.noResultsSubtext}>
+                  Try adjusting your search or filters
+                </Text>
               </View>
-              <Text style={styles.noResultsText}>No results found</Text>
-              <Text style={styles.noResultsSubtext}>
-                Try adjusting your search or filters
-              </Text>
-            </View>
-          )}
+            )}
 
           <View style={styles.bottomPadding} />
         </ScrollView>
@@ -1126,18 +1343,28 @@ export default function ExploreScreen() {
           onRequestClose={() => setShowFilter(false)}
         >
           <TouchableWithoutFeedback onPress={() => setShowFilter(false)}>
-            <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'flex-end',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}
+            >
               <TouchableWithoutFeedback onPress={() => {}}>
-                <View style={{
-                  height: '80%',
-                  backgroundColor: theme.background,
-                  borderTopLeftRadius: 20,
-                  borderTopRightRadius: 20,
-                  overflow: 'hidden'
-                }}>
+                <View
+                  style={{
+                    height: '80%',
+                    backgroundColor: theme.background,
+                    borderTopLeftRadius: 20,
+                    borderTopRightRadius: 20,
+                    overflow: 'hidden',
+                  }}
+                >
                   <SafeAreaView style={styles.filterModal}>
                     <View style={styles.filterHeader}>
-                      <Text style={styles.filterHeaderTitle}>Advanced Filters</Text>
+                      <Text style={styles.filterHeaderTitle}>
+                        Advanced Filters
+                      </Text>
                       <TouchableOpacity onPress={() => setShowFilter(false)}>
                         <X size={24} color={theme.text} />
                       </TouchableOpacity>
@@ -1148,73 +1375,114 @@ export default function ExploreScreen() {
                         'Content Type',
                         filterOptions.contentType,
                         filters.contentType,
-                        (value) => setFilters(prev => ({ ...prev, contentType: value }))
+                        (value) =>
+                          setFilters((prev) => ({
+                            ...prev,
+                            contentType: value,
+                          }))
                       )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Products') && renderFilterOption(
-                        'Price Range',
-                        filterOptions.priceRange,
-                        filters.priceRange,
-                        (value) => setFilters(prev => ({ ...prev, priceRange: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Products') &&
+                        renderFilterOption(
+                          'Price Range',
+                          filterOptions.priceRange,
+                          filters.priceRange,
+                          (value) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              priceRange: value,
+                            }))
+                        )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Products') && renderFilterOption(
-                        'Rating',
-                        filterOptions.rating,
-                        filters.rating,
-                        (value) => setFilters(prev => ({ ...prev, rating: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Products') &&
+                        renderFilterOption(
+                          'Rating',
+                          filterOptions.rating,
+                          filters.rating,
+                          (value) =>
+                            setFilters((prev) => ({ ...prev, rating: value }))
+                        )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Products') && renderFilterOption(
-                        'Availability',
-                        filterOptions.availability,
-                        filters.availability,
-                        (value) => setFilters(prev => ({ ...prev, availability: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Products') &&
+                        renderFilterOption(
+                          'Availability',
+                          filterOptions.availability,
+                          filters.availability,
+                          (value) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              availability: value,
+                            }))
+                        )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Products') && renderFilterOption(
-                        'Style',
-                        filterOptions.style,
-                        filters.style,
-                        (value) => setFilters(prev => ({ ...prev, style: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Products') &&
+                        renderFilterOption(
+                          'Style',
+                          filterOptions.style,
+                          filters.style,
+                          (value) =>
+                            setFilters((prev) => ({ ...prev, style: value }))
+                        )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Users' || filters.contentType == 'Shops') && renderFilterOption(
-                        'Verification',
-                        filterOptions.verification,
-                        filters.verification,
-                        (value) => setFilters(prev => ({ ...prev, verification: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Users' ||
+                        filters.contentType == 'Shops') &&
+                        renderFilterOption(
+                          'Verification',
+                          filterOptions.verification,
+                          filters.verification,
+                          (value) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              verification: value,
+                            }))
+                        )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Users' || filters.contentType == 'Shops') && renderFilterOption(
-                        'Followers',
-                        filterOptions.followers,
-                        filters.followers,
-                        (value) => setFilters(prev => ({ ...prev, followers: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Users' ||
+                        filters.contentType == 'Shops') &&
+                        renderFilterOption(
+                          'Followers',
+                          filterOptions.followers,
+                          filters.followers,
+                          (value) =>
+                            setFilters((prev) => ({
+                              ...prev,
+                              followers: value,
+                            }))
+                        )}
 
-                      {(filters.contentType == 'All' || filters.contentType == 'Posts') && renderFilterOption(
-                        'Likes',
-                        filterOptions.likes,
-                        filters.likes,
-                        (value) => setFilters(prev => ({ ...prev, likes: value }))
-                      )}
+                      {(filters.contentType == 'All' ||
+                        filters.contentType == 'Posts') &&
+                        renderFilterOption(
+                          'Likes',
+                          filterOptions.likes,
+                          filters.likes,
+                          (value) =>
+                            setFilters((prev) => ({ ...prev, likes: value }))
+                        )}
                     </ScrollView>
 
                     <View style={styles.filterFooter}>
                       <TouchableOpacity
                         style={styles.clearFiltersButton}
-                        onPress={() => setFilters({
-                          contentType: 'All',
-                          priceRange: 'All',
-                          rating: 'All',
-                          availability: 'All',
-                          style: 'All',
-                          location: 'All',
-                          verification: 'All',
-                          followers: 'All',
-                          likes: 'All',
-                        })}
+                        onPress={() =>
+                          setFilters({
+                            contentType: 'All',
+                            priceRange: 'All',
+                            rating: 'All',
+                            availability: 'All',
+                            style: 'All',
+                            location: 'All',
+                            verification: 'All',
+                            followers: 'All',
+                            likes: 'All',
+                          })
+                        }
                       >
                         <Text style={styles.clearFiltersText}>Clear All</Text>
                       </TouchableOpacity>
@@ -1222,7 +1490,9 @@ export default function ExploreScreen() {
                         style={styles.applyFiltersButton}
                         onPress={() => setShowFilter(false)}
                       >
-                        <Text style={styles.applyFiltersText}>Apply Filters</Text>
+                        <Text style={styles.applyFiltersText}>
+                          Apply Filters
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </SafeAreaView>
@@ -1232,7 +1502,6 @@ export default function ExploreScreen() {
           </TouchableWithoutFeedback>
         </Modal>
 
-
         {enlargedPost && (
           <Modal
             visible={!!enlargedPost}
@@ -1241,11 +1510,8 @@ export default function ExploreScreen() {
             onRequestClose={handleCloseEnlarged}
           >
             {/* Add BlurView for background blur */}
-            <Animated.View 
-              style={[
-                styles.enlargedContainer,
-                { opacity: opacityAnim }
-              ]}
+            <Animated.View
+              style={[styles.enlargedContainer, { opacity: opacityAnim }]}
               {...panResponder.panHandlers}
             >
               {/* BlurView background */}
@@ -1254,16 +1520,16 @@ export default function ExploreScreen() {
                 tint="light"
                 style={StyleSheet.absoluteFill}
               />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.enlargedBackdrop}
                 onPress={handleCloseEnlarged}
                 activeOpacity={1}
               />
-              
-              <Animated.View 
+
+              <Animated.View
                 style={[
                   styles.enlargedContent,
-                  { transform: [{ scale: scaleAnim }] }
+                  { transform: [{ scale: scaleAnim }] },
                 ]}
               >
                 {renderEnlargedPost(enlargedPost)}

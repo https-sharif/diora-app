@@ -324,7 +324,7 @@ export default function MessageScreen() {
   useEffect(() => {
     if (conversation) {
       const otherUser = mockUsers.find(
-        (u) => u.id === conversation.participants.find((p) => p !== user?.id)
+        (u) => u._id === conversation.participants.find((p) => p !== user?._id)
       );
       if (otherUser) {
         setOtherUser(otherUser);
@@ -389,7 +389,7 @@ export default function MessageScreen() {
 
   const renderMessage = ({ item }: { item: Message }) => {
     if (!user) return null;
-    const isMe = item.senderId === user.id;
+    const isMe = item.senderId === user._id;
 
     const formattedTime = new Date(item.timestamp).toLocaleTimeString([], {
       hour: '2-digit',
@@ -509,7 +509,7 @@ export default function MessageScreen() {
             />
             <View style={styles.headerText}>
               <TouchableOpacity
-                onPress={() => handleProfilePress(otherUser?.id || '')}
+                onPress={() => handleProfilePress(otherUser?._id || '')}
               >
                 <Text style={styles.headerName}>
                   {conversation.name || otherUser?.username}

@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginSchema, signupSchema } from '@/validation/authSchema';
 import { API_URL } from '@/constants/api';
 import axios from 'axios';
+import { useNotification } from '@/hooks/useNotification';
 
 interface AuthState {
   isAuthenticated: boolean;

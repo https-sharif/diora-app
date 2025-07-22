@@ -462,7 +462,7 @@ export default function PostDetailScreen() {
         ? `${API_URL}/api/comment/reply/${replyingTo}`
         : `${API_URL}/api/comment/create`;
 
-      const payload = { userId: user._id, targetId: post._id, text: newComment };
+      const payload = { userId: user._id, postId: post._id, text: newComment };
 
       const response = await axios.post(url, payload, {
         headers: { Authorization: `Bearer ${token}` },

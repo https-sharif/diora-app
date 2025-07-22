@@ -126,7 +126,7 @@ export default function CreateFormScreen() {
     } finally {
       setIsSubmitting(false);
       navigation.goBack();
-      router.push('/(tabs)/profile');
+      router.push('/(tabs)');
       reset();
     }
   };

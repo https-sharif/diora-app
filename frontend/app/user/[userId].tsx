@@ -12,11 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { 
-  ArrowLeft, 
-  Grid2x2 as Grid, 
-  MessageCircle, 
-  Share, 
+import {
+  ArrowLeft,
+  Grid2x2 as Grid,
+  MessageCircle,
+  Share,
   MoreHorizontal,
   UserPlus,
   UserMinus,
@@ -52,7 +52,7 @@ const createStyles = (theme: Theme) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
       backgroundColor: theme.background,
-      borderBottomWidth: 1, 
+      borderBottomWidth: 1,
       borderBottomColor: theme.border,
     },
     headerButton: {
@@ -324,8 +324,8 @@ const createStyles = (theme: Theme) => {
 
 export default function UserProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
-  const { user, followUser, token} = useAuth();
-  
+  const { user, followUser, token } = useAuth();
+
   const [userProfile, setUserProfile] = useState<User | null>(null);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -349,13 +349,12 @@ export default function UserProfileScreen() {
 
         if (!response.data.status) {
           throw new Error('Failed to fetch user profile');
-        } 
+        }
 
-        setUserProfile(response.data.user); 
+        setUserProfile(response.data.user);
 
         setIsFollowing(user?.following.includes(user._id) || false);
-      }
-      catch (error) {
+      } catch (error) {
         console.error('Error fetching user profile:', error);
         setLoading(false);
         return;
@@ -364,13 +363,12 @@ export default function UserProfileScreen() {
 
     const fetchPosts = async () => {
       try {
-        
         const response = await axios.get(`${API_URL}/api/post/user/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         setPosts(response.data.posts);
       } catch (error) {
         console.error('Error fetching posts:', error);
@@ -379,13 +377,15 @@ export default function UserProfileScreen() {
 
     const fetchLikedPosts = async () => {
       try {
-        
-        const response = await axios.get(`${API_URL}/api/post/user/${userId}/liked`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        
+        const response = await axios.get(
+          `${API_URL}/api/post/user/${userId}/liked`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         setLikedPosts(response.data.posts);
       } catch (error) {
         console.error('Error fetching liked posts:', error);
@@ -402,7 +402,7 @@ export default function UserProfileScreen() {
 
   const handleFollow = () => {
     if (!userProfile) return;
-    
+
     followUser(userProfile._id);
     setIsFollowing(!isFollowing);
   };
@@ -416,17 +416,20 @@ export default function UserProfileScreen() {
   };
 
   const handleReport = () => {
-    Alert.alert(
-      'Report User',
-      'Are you sure you want to report this user?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Report', style: 'destructive', onPress: () => {
-          Alert.alert('Reported', 'User has been reported. Thank you for keeping our community safe.');
+    Alert.alert('Report User', 'Are you sure you want to report this user?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Report',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            'Reported',
+            'User has been reported. Thank you for keeping our community safe.'
+          );
           setShowMoreMenu(false);
-        }},
-      ]
-    );
+        },
+      },
+    ]);
   };
 
   const handlePostPress = (postId: string) => {
@@ -434,7 +437,7 @@ export default function UserProfileScreen() {
   };
 
   const renderPost = ({ item }: { item: Post }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.postItem}
       onPress={() => handlePostPress(item._id)}
       activeOpacity={0.8}
@@ -442,6 +445,38 @@ export default function UserProfileScreen() {
       <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
     </TouchableOpacity>
   );
+
+  const renderGrid = (data: Post[], emptyText: string) => {
+    if(!data) {
+      return (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconContainer}>
+            <ImageSlashIcon size={40} />
+          </View>
+          <Text style={styles.emptyTitle}>{emptyText}</Text>
+        </View>
+      );
+    }
+
+    return data.length > 0 ? (
+      <FlatList
+        data={data}
+        renderItem={renderPost}
+        keyExtractor={(item) => item._id}
+        numColumns={3}
+        scrollEnabled={false}
+        columnWrapperStyle={styles.postsRow}
+        contentContainerStyle={styles.postsGrid}
+      />
+    ) : (
+      <View style={styles.emptyState}>
+        <View style={styles.emptyIconContainer}>
+          <ImageSlashIcon size={40} />
+        </View>
+        <Text style={styles.emptyTitle}>{emptyText}</Text>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -457,7 +492,10 @@ export default function UserProfileScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.back()}
+          >
             <ArrowLeft size={24} color={theme.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Profile</Text>
@@ -468,13 +506,16 @@ export default function UserProfileScreen() {
           </View>
         </View>
         <View style={styles.emptyState}>
-        <View style={styles.emptyIconContainer}>
-          <UserSlashIcon />
-        </View>
-        <Text style={styles.emptyTitle}>User not found</Text>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
+          <View style={styles.emptyIconContainer}>
+            <UserSlashIcon />
+          </View>
+          <Text style={styles.emptyTitle}>User not found</Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -483,13 +524,16 @@ export default function UserProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => router.back()}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => router.back()}
+        >
           <ArrowLeft size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{userProfile.username}</Text>
         <View style={styles.headerActions}>
-          <TouchableOpacity 
-            style={styles.headerButton} 
+          <TouchableOpacity
+            style={styles.headerButton}
             onPress={() => setShowMoreMenu(true)}
           >
             <MoreHorizontal size={24} color={theme.text} />
@@ -501,18 +545,25 @@ export default function UserProfileScreen() {
         {/* Profile Info */}
         <View style={styles.profileSection}>
           <View style={styles.profileHeader}>
-            <Image source={{ uri: userProfile.avatar }} style={styles.profileImage} />
+            <Image
+              source={{ uri: userProfile.avatar }}
+              style={styles.profileImage}
+            />
             <View style={styles.profileStats}>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{userProfile.posts}</Text>
                 <Text style={styles.statLabel}>Posts</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{userProfile.followers.length}</Text>
+                <Text style={styles.statNumber}>
+                  {userProfile.followers.length}
+                </Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{userProfile.following.length}</Text>
+                <Text style={styles.statNumber}>
+                  {userProfile.following.length}
+                </Text>
                 <Text style={styles.statLabel}>Following</Text>
               </View>
             </View>
@@ -527,14 +578,19 @@ export default function UserProfileScreen() {
                 </View>
               )}
             </View>
-            {userProfile.bio ? <Text style={styles.bio}>{userProfile.bio}</Text> : null}
+            {userProfile.bio ? (
+              <Text style={styles.bio}>{userProfile.bio}</Text>
+            ) : null}
           </View>
 
           {/* Action Buttons */}
           {userProfile._id !== user?._id && (
             <View style={styles.actionButtons}>
-              <TouchableOpacity 
-                style={[styles.followButton, isFollowing && styles.followingButton]}
+              <TouchableOpacity
+                style={[
+                  styles.followButton,
+                  isFollowing && styles.followingButton,
+                ]}
                 onPress={handleFollow}
               >
                 {isFollowing ? (
@@ -542,90 +598,63 @@ export default function UserProfileScreen() {
                 ) : (
                   <UserPlus size={18} color={theme.background} />
                 )}
-                <Text style={[
-                  styles.followButtonText, 
-                  isFollowing && styles.followingButtonText
-                ]}>
+                <Text
+                  style={[
+                    styles.followButtonText,
+                    isFollowing && styles.followingButtonText,
+                  ]}
+                >
                   {isFollowing ? 'Following' : 'Follow'}
                 </Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.messageButton} onPress={handleMessage}>
+
+              <TouchableOpacity
+                style={styles.messageButton}
+                onPress={handleMessage}
+              >
                 <MessageCircle size={18} color="#000" />
                 <Text style={styles.messageButtonText}>Message</Text>
               </TouchableOpacity>
             </View>
-            )}
+          )}
         </View>
-
+        
         {/* Posts Tab */}
         <View style={styles.tabsSection}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tab, selectedTab === 'posts' && styles.activeTab]}
             onPress={() => setSelectedTab('posts')}
           >
             <Grid size={20} color={selectedTab === 'posts' ? '#000' : '#666'} />
-            <Text style={[
-              styles.tabText, 
-              selectedTab === 'posts' && styles.activeTabText
-            ]}>
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'posts' && styles.activeTabText,
+              ]}
+            >
               Posts
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.tab, selectedTab === 'liked' && styles.activeTab]}
             onPress={() => setSelectedTab('liked')}
           >
-            <Star size={20} color={selectedTab === 'liked' ? '#000' : theme.textSecondary} />
-            <Text style={[
-              styles.tabText, 
-              selectedTab === 'liked' && styles.activeTabText
-            ]}>
+            <Star
+              size={20}
+              color={selectedTab === 'liked' ? '#000' : theme.textSecondary}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === 'liked' && styles.activeTabText,
+              ]}
+            >
               Liked
             </Text>
           </TouchableOpacity>
         </View>
-
         {/* Posts Grid */}
-        {selectedTab === 'posts' ? (
-          posts.length > 0 ? (
-          <FlatList
-            data={posts}
-            renderItem={renderPost}
-            keyExtractor={(item) => item._id}
-            numColumns={3}
-            scrollEnabled={false}
-            columnWrapperStyle={styles.postsRow}
-            contentContainerStyle={styles.postsGrid}
-          />
-          ) : (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIconContainer}>
-                <ImageSlashIcon size={40} />
-              </View>
-              <Text style={styles.emptyTitle}>No posts yet</Text>
-            </View>
-          )
-        ) : (
-          likedPosts.length > 0 ? (
-            <FlatList
-            data={likedPosts}
-            renderItem={renderPost}
-            keyExtractor={(item) => item._id}
-            numColumns={3}
-            scrollEnabled={false}
-            columnWrapperStyle={styles.postsRow}
-            contentContainerStyle={styles.postsGrid}
-          />
-          ) : (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIconContainer}>
-                <ImageSlashIcon size={40} />
-              </View>
-              <Text style={styles.emptyTitle}>No liked posts yet</Text>
-            </View>
-          )
-        )}
+        {renderGrid(selectedTab === 'posts' ? posts : likedPosts, selectedTab === 'posts' ? 'No posts yet' : 'No liked posts yet')}
       </ScrollView>
 
       {/* More Menu Modal */}
@@ -635,7 +664,11 @@ export default function UserProfileScreen() {
         animationType="slide"
         onRequestClose={() => setShowMoreMenu(false)}
       >
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowMoreMenu(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMoreMenu(false)}
+        >
           <View style={styles.moreMenu}>
             <View style={styles.moreMenuHeader}>
               <Text style={styles.moreMenuTitle}>More Options</Text>
@@ -648,20 +681,27 @@ export default function UserProfileScreen() {
               <Share size={20} color={theme.text} />
               <Text style={styles.moreMenuItemText}>Share Profile</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.moreMenuItem} onPress={handleReport}>
+
+            <TouchableOpacity
+              style={styles.moreMenuItem}
+              onPress={handleReport}
+            >
               <Flag size={20} color={theme.error} />
-              <Text style={[styles.moreMenuItemText, { color: theme.error }]}>Report User</Text>
+              <Text style={[styles.moreMenuItemText, { color: theme.error }]}>
+                Report User
+              </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.moreMenuItem}
               onPress={() => {
                 Alert.alert('Block User', `Block ${userProfile.fullName}?`);
               }}
             >
               <X size={20} color={theme.error} />
-              <Text style={[styles.moreMenuItemText, { color: theme.error }]}>Block User</Text>
+              <Text style={[styles.moreMenuItemText, { color: theme.error }]}>
+                Block User
+              </Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

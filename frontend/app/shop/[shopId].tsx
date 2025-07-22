@@ -47,6 +47,8 @@ import { Theme } from '@/types/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import Color from 'color';
 import { BlurView } from 'expo-blur';
+import axios from 'axios';
+import { API_URL } from '@/constants/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -573,9 +575,8 @@ export default function ShopProfileScreen() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'products' | 'reviews'>('products');
   const [loading, setLoading] = useState(true);
-  const { user, followUser } = useAuth();
+  const { user, followUser, token } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -649,24 +650,44 @@ export default function ShopProfileScreen() {
   };
 
   useEffect(() => {
-    if (shopId) {
-      const profile = mockShops.find(p => p.id === shopId);
-      if (profile) {
-        setShopProfile(profile);
-        setIsFollowing(user?.id ? user.following.includes(profile.id) : false);
-        const fetchedProducts: Product[] = mockProducts.filter(product => profile.productIds.includes(product.id));
-        setProducts(fetchedProducts);
+    const fetchShopProfile = async () => {
+      try {
+        setLoading(true);
 
-        const fetchedReviews: Review[] = mockReviews.filter(review => review.targetId === profile.id && review.targetType === 'shop');
-        setReviews(fetchedReviews);
+        const response = await axios.get(`${API_URL}/api/shop/${shopId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        if(response.data.status === false) {
+          setShopProfile(null);
+          return;
+        }
+        const shop = response.data.shop;
+        
+        setShopProfile(shop);
+        console.log(shop.productIds);
+        setReviews(mockReviews.filter(review => review.targetType === 'shop' && review.targetId === shop._id));
+        
+        if (user) {
+          setIsFollowing(user.following.includes(shop._id));
+        }
+
+      } catch (error) {
+        console.error('Error fetching shop profile:', error);
       }
-    }
-    setLoading(false);
+      finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShopProfile();
   }, [shopId]);
 
   const toggleFollow = () => {
     if (!shopProfile || !user) return;
-    followUser(shopProfile.id);
+    followUser(shopProfile._id);
     setIsFollowing(!isFollowing);
   };
 
@@ -701,7 +722,7 @@ export default function ShopProfileScreen() {
   const renderProduct = ({ item }: { item: Product }) => (
     <TouchableOpacity 
       style={styles.productItem}
-      onPress={() => handleProductPress(item.id)}
+      onPress={() => handleProductPress(item._id)}
     >
       <View style={styles.productImageContainer}>
         <Image source={{ uri: item.imageUrl[0] }} style={styles.productImage} />
@@ -726,7 +747,7 @@ export default function ShopProfileScreen() {
         <Bookmark
           size={16}
           color={theme.background}
-          fill={isInWishlist(item.id) ? theme.background : 'transparent'}
+          fill={isInWishlist(item._id) ? theme.background : 'transparent'}
         />
       </TouchableOpacity>
       
@@ -754,7 +775,7 @@ export default function ShopProfileScreen() {
   );
 
   const renderReview = ({ item }: { item: Review }) => {
-    const user = mockUsers.find(user => user.id === item.userId) as User;
+    const user = mockUsers.find(user => user._id === item.userId) as User;
     if (!user) return null;
 
     return (
@@ -847,11 +868,11 @@ export default function ShopProfileScreen() {
             <Image source={{ uri: shopProfile.logoUrl }} style={styles.shopAvatar} />
             <View style={styles.shopStats}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{products.length}</Text>
+                <Text style={styles.statNumber}>{shopProfile.productIds.length}</Text>
                 <Text style={styles.statLabel}>Products</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{shopProfile.followers.length}</Text>
+                <Text style={styles.statNumber}>{shopProfile.followers}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </View>
               <View style={styles.statItem}>
@@ -881,10 +902,6 @@ export default function ShopProfileScreen() {
                 <MapPin size={16} color={theme.textSecondary} />
                 <Text style={styles.contactText}>{shopProfile.location}</Text>
               </View>
-              {/* <View style={styles.contactItem}>
-                <Clock size={16} color="#666" />
-                <Text style={styles.contactText}>{shopProfile.openingHours}</Text>
-              </View> */}
               {shopProfile.contactPhone && (
                 <View style={styles.contactItem}>
                   <Phone size={16} color={theme.textSecondary} />
@@ -957,7 +974,7 @@ export default function ShopProfileScreen() {
               styles.tabText, 
               selectedTab === 'products' && styles.activeTabText
             ]}>
-              Products ({products.length})
+              Products ({shopProfile.productIds.length})
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -977,9 +994,9 @@ export default function ShopProfileScreen() {
         {/* Content */}
         {selectedTab === 'products' ? (
           <FlatList
-            data={products}
+            data={shopProfile.productIds}
             renderItem={({ item }) => renderProduct({ item })}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             numColumns={2}
             scrollEnabled={false}
             columnWrapperStyle={styles.productsRow}

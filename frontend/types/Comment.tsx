@@ -5,7 +5,7 @@ export interface Comment {
     username: string;
     avatar?: string;
   };
-  targetId?: string;
+  postId?: string;
   text: string;
   createdAt: string;
   replies?: Comment[];

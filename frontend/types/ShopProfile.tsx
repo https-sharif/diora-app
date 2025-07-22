@@ -1,5 +1,7 @@
+import { Product } from "./Product";
+
 export interface ShopProfile {
-  id: string;
+  _id: string;
   userId: string;
   name: string;
   username: string;
@@ -17,11 +19,10 @@ export interface ShopProfile {
     tiktok?: string;
   };
   categories: string[];
-  productIds: string[];
+  productIds: Product[];
   rating: number;
   ratingCount: number;
-  followers: string[];
+  followers: number;
   isVerified: boolean;
   createdAt: string;
-  updatedAt: string;
 }

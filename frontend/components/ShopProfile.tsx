@@ -162,8 +162,8 @@ export default function ShopProfile() {
     setActiveTab(tab);
   };
   const { theme } = useTheme();
-  const myPosts = mockPosts.filter(post => post.userId === user?.id);
-  const likedPosts = mockPosts.filter(post => user?.likedPosts.includes(post.id));
+  const myPosts = mockPosts.filter(post => post.user._id === user?._id);
+  const likedPosts = mockPosts.filter(post => user?.likedPosts.includes(post._id));
 
   const styles = createStyles(theme);
 
@@ -176,13 +176,13 @@ export default function ShopProfile() {
   };
 
   const renderPost = ({ item }: { item: Post }) => {
-    const user = mockUsers.find(user => user.id === item.userId);
+    const user = mockUsers.find(user => user._id === item._id);
     if (!user) return null;
 
     return (
       <TouchableOpacity
         style={styles.postItem}
-        onPress={() => handlePostPress(item.id)}
+        onPress={() => handlePostPress(item._id)}
       >
         <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
       </TouchableOpacity>
@@ -282,7 +282,7 @@ export default function ShopProfile() {
           <FlatList
             data={myPosts}
             renderItem={renderPost}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             numColumns={3}
             scrollEnabled={false}
             columnWrapperStyle={styles.postsRow}
@@ -295,7 +295,7 @@ export default function ShopProfile() {
           <FlatList
             data={likedPosts}
             renderItem={renderPost}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             numColumns={3}
             scrollEnabled={false}
             columnWrapperStyle={styles.postsRow}

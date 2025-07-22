@@ -7,6 +7,8 @@ import {
   Image,
   FlatList,
   StyleSheet,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
@@ -188,25 +190,75 @@ export default function CreateImageScreen() {
   const pickImages = async () => {
     const limit = contentType === 'product' ? 5 : 1;
     const remaining = limit - images.length;
-  
+
     if (remaining <= 0) {
-      Alert.alert('Limit reached', `You can only select up to ${limit} ${contentType === 'product' ? 'images' : 'image'}. Long press on a thumbnail to remove it.`);
+      Alert.alert(
+        'Limit reached',
+        `You can only select up to ${limit} ${contentType === 'product' ? 'images' : 'image'}. Long press on a thumbnail to remove it.`
+      );
       return;
     }
-  
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: contentType === 'product',
-      mediaTypes: ['images'],
-      selectionLimit: contentType === 'product' ? remaining : 1,
-    });
-  
-    if (!result.canceled) {
-      const newUris = result.assets.map((a) => a.uri);
-      const updated = [...images, ...newUris].slice(0, limit);
-      setImages(updated);
-      setImageUri(updated[0]);
+
+    const handleImageResult = (result: ImagePicker.ImagePickerResult) => {
+      if (!result.canceled) {
+        const newUris = result.assets.map((a) => a.uri);
+        const updated = [...images, ...newUris].slice(0, limit);
+        setImages(updated);
+        setImageUri(updated[0]);
+      }
+    };
+
+    const launchCamera = async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Camera permission is required to take photos.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+      });
+      handleImageResult(result);
+    };
+
+    const launchGallery = async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission denied', 'Gallery permission is required to select images.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsMultipleSelection: contentType === 'product',
+        mediaTypes: ['images'],
+        selectionLimit: contentType === 'product' ? remaining : 1,
+      });
+      handleImageResult(result);
+    };
+
+    if (contentType === 'product') {
+      launchGallery();
+      return;
+    }
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Take Photo', 'Choose from Library'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) launchCamera();
+          else if (buttonIndex === 2) launchGallery();
+        }
+      );
+    } else {
+      Alert.alert('Select Image', 'Choose image source', [
+        { text: 'Take Photo', onPress: launchCamera },
+        { text: 'Choose from Gallery', onPress: launchGallery },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
     }
   };
+
   
 
   const handleDeleteImage = (uri: string) => {

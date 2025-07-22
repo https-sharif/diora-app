@@ -178,7 +178,7 @@ export default function MessagesScreen() {
 
   useEffect(() => {
     if (user) {
-      setMyConversations(conversations.filter(conv => conv.participants.includes(user.id)));
+      setMyConversations(conversations.filter(conv => conv.participants.includes(user._id)));
     }
   }, [user, conversations]);
 
@@ -217,8 +217,8 @@ export default function MessagesScreen() {
       senderName = conversations.find(c => c.id === item.id)?.name || '';
       senderAvatar = item.avatar || '';
     } else {
-      const senderId = participants?.find(p => p !== user?.id);
-      const sender = mockUsers.find(u => u.id === senderId);
+      const senderId = participants?.find(p => p !== user?._id);
+      const sender = mockUsers.find(u => u._id === senderId);
       senderName = sender?.username || 'Unknown';
       senderAvatar = sender?.avatar || '';
     }

@@ -7,6 +7,6 @@ router.use(verifyToken);
 
 router.post('/create', createComment);
 router.post('/reply/:commentId', createReply);
-router.get('/post/:targetId', getComments);
+router.get('/post/:postId', getComments);
 
 export default router;

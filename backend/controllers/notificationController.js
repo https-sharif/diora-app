@@ -13,6 +13,7 @@ export const addNotification = async (req, res) => {
     title,
     message,
     read = false,
+    actionUrl = null,
   } = req.body;
 
   if (!type || !userId || !fromUserId) {
@@ -33,6 +34,7 @@ export const addNotification = async (req, res) => {
       title,
       message,
       read,
+      actionUrl,
     });
 
     await newNotification.save();
@@ -66,16 +68,24 @@ export const getNotifications = async (req, res) => {
   const userId = req.user.id;
 
   if (!userId) {
-    return res.status(400).json({ status: false, message: 'User ID is required' });
+    return res
+      .status(400)
+      .json({ status: false, message: 'User ID is required' });
   }
 
   try {
-    const notifications = await Notification.find({ userId }).sort({ createdAt: -1 }).limit(100);
+    const notifications = await Notification.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(100);
 
     if (!notifications || notifications.length === 0) {
-      return res.status(404).json({ status: false, message: 'No notifications found' });
+      return res
+        .status(404)
+        .json({ status: false, message: 'No notifications found' });
     }
-    console.log(`Found ${notifications.length} notifications for user ${userId}`);
+    console.log(
+      `Found ${notifications.length} notifications for user ${userId}`
+    );
 
     res.json({ status: true, notifications });
   } catch (err) {
@@ -89,31 +99,41 @@ export const markNotificationAsRead = async (req, res) => {
   const { notificationId } = req.params;
 
   if (!notificationId) {
-    return res.status(400).json({ status: false, message: 'Notification ID is required' });
+    return res
+      .status(400)
+      .json({ status: false, message: 'Notification ID is required' });
   }
 
   try {
     const notification = await Notification.findById(notificationId);
     if (!notification) {
-      return res.status(404).json({ status: false, message: 'Notification not found' });
+      return res
+        .status(404)
+        .json({ status: false, message: 'Notification not found' });
     }
 
     notification.read = true;
     await notification.save();
 
-    res.json({ status: true, message: 'Notification marked as read', notification });
+    res.json({
+      status: true,
+      message: 'Notification marked as read',
+      notification,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ status: false, message: 'Something went wrong' });
   }
-}
+};
 
 export const markAllNotificationsAsRead = async (req, res) => {
   console.log('Mark all notifications as read route/controller hit');
   const userId = req.user.id;
 
   if (!userId) {
-    return res.status(400).json({ status: false, message: 'User ID is required' });
+    return res
+      .status(400)
+      .json({ status: false, message: 'User ID is required' });
   }
 
   try {
@@ -127,24 +147,28 @@ export const markAllNotificationsAsRead = async (req, res) => {
 };
 
 export const deleteNotification = async (req, res) => {
-    console.log('Delete notification route/controller hit');
-    const { notificationId } = req.params;
-    
-    if (!notificationId) {
-        return res.status(400).json({ status: false, message: 'Notification ID is required' });
+  console.log('Delete notification route/controller hit');
+  const { notificationId } = req.params;
+
+  if (!notificationId) {
+    return res
+      .status(400)
+      .json({ status: false, message: 'Notification ID is required' });
+  }
+
+  try {
+    const notification = await Notification.findById(notificationId);
+    if (!notification) {
+      return res
+        .status(404)
+        .json({ status: false, message: 'Notification not found' });
     }
-    
-    try {
-        const notification = await Notification.findById(notificationId);
-        if (!notification) {
-        return res.status(404).json({ status: false, message: 'Notification not found' });
-        }
-    
-        await Notification.deleteOne({ _id: notificationId });
-    
-        res.json({ status: true, message: 'Notification deleted successfully' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ status: false, message: 'Something went wrong' });
-    }
+
+    await Notification.deleteOne({ _id: notificationId });
+
+    res.json({ status: true, message: 'Notification deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: false, message: 'Something went wrong' });
+  }
 };

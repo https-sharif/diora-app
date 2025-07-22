@@ -50,7 +50,7 @@ export const useShoppingStore = create<ShoppingStore>((set, get) => ({
 
       const newItem: CartItem = {
         id: (state.cart.length + 1).toString(),
-        userId: user.id,
+        userId: user._id,
         productId: product.id,
         quantity: 1,
         size: size,
@@ -97,7 +97,7 @@ export const useShoppingStore = create<ShoppingStore>((set, get) => ({
 
       const newItem: WishlistItem = {
         id: (state.wishlist.length + 1).toString(),
-        userId: user.id,
+        userId: user._id,
         productId: product.id,
       };
 

@@ -290,7 +290,9 @@ export default function PostCard({ post }: { post: Post }) {
 
     try {
       const url = replyingTo ? `${API_URL}/api/comment/reply/${replyingTo}` : `${API_URL}/api/comment/create`;
-      const payload = { userId: user._id, targetId: post._id, text: newComment };
+      const payload = { userId: user._id, postId: post._id, text: newComment };
+
+      console.log('Adding comment:', payload);
 
       const response = await axios.post(url, payload, {
         headers: { Authorization: `Bearer ${token}` },

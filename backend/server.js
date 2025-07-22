@@ -8,6 +8,8 @@ import userRoutes from './routes/user.js';
 import postRoutes from './routes/post.js';
 import commentRoutes from './routes/comment.js';
 import notificationRoutes from './routes/notification.js';
+import productRoutes from './routes/product.js';
+import shopRoutes from './routes/shop.js';
 import { initSocket } from './sockets/socketSetup.js';
 
 dotenv.config();
@@ -30,6 +32,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/comment', commentRoutes);
 app.use('/api/notification', notificationRoutes);
+app.use('/api/product', productRoutes);
+app.use('/api/shop', shopRoutes);
 
 const server = http.createServer(app);
 const io = initSocket(server);

@@ -1,30 +1,58 @@
 import Comment from '../models/Comment.js';
 import Post from '../models/Post.js';
+import Notification from '../models/Notification.js';
+import { getIO, onlineUsers } from '../sockets/socketSetup.js';
 
 export const createComment = async (req, res) => {
   console.log('Create comment route/controller hit');
-
-  console.log('Creating comment for target ID:', req.body.targetId);
   console.log('Request body:', req.body);
 
-  const { userId, targetId, text } = req.body;
+  const { userId, postId, text } = req.body;
+
+  if (!userId || !postId || !text) {
+    return res.status(400).json({
+      status: false,
+      message: 'userId, postId, and text are required',
+    });
+  }
 
   try {
     const comment = new Comment({
       user: userId,
-      targetId,
+      postId,
       text,
     });
 
-    const post = await Post.findById(targetId);
+    const post = await Post.findById(postId).populate('user', 'username _id');
     if (!post) {
       return res.status(404).json({ status: false, message: 'Post not found' });
     }
+
     post.comments += 1;
     await post.save();
 
     await comment.save();
     await comment.populate('user', 'username avatar');
+
+    if (userId !== post.user._id.toString()) {
+      const notification = new Notification({
+        type: 'comment',
+        userId: post.user._id,
+        fromUserId: userId,
+        title: 'New Comment',
+        postId,
+        message: `${post.user.username} commented on your post`,
+        actionUrl: `/post/${postId}`,
+      });
+
+      await notification.save();
+
+      const io = getIO();
+      const targetSocketId = onlineUsers.get(post.user._id.toString());
+      if (targetSocketId) {
+        io.to(targetSocketId).emit('notification', notification);
+      }
+    }
 
     res.status(201).json({ status: true, comment });
   } catch (error) {
@@ -45,7 +73,6 @@ export const createReply = async (req, res) => {
   try {
     const parentComment = await Comment.findById(commentId);
     const post = await Post.findById(targetId);
-
 
     if (!parentComment) {
       return res
@@ -78,10 +105,10 @@ export const createReply = async (req, res) => {
 
 export const getComments = async (req, res) => {
   console.log('Get comments route/controller hit');
-  const { targetId } = req.params;
+  const { postId } = req.params;
 
   try {
-    const comments = await Comment.find({ targetId })
+    const comments = await Comment.find({ postId })
       .populate('user', 'username avatar')
       .sort({ createdAt: -1 })
       .populate({
@@ -90,7 +117,9 @@ export const getComments = async (req, res) => {
       });
 
     if (!comments || comments.length === 0) {
-      return res.status(200).json({ status: true, message: 'No comments found', comments: [] });
+      return res
+        .status(200)
+        .json({ status: true, message: 'No comments found', comments: [] });
     }
 
     res.json({ status: true, comments });

@@ -2,7 +2,7 @@ import { ShopProfile } from "@/types/ShopProfile";
 
 export const mockShops: ShopProfile[] = [
   {
-    id: '11',
+    _id: '11',
     name: 'Vintage Denim',
     username: 'vintage_denim',
     userId: '1',
@@ -17,13 +17,11 @@ export const mockShops: ShopProfile[] = [
     productIds: ['1', '2', '3'],
     rating: 4.5,
     ratingCount: 5,
-    followers: ['1', '2', '3'],
+    followers: 3,
     isVerified: true,
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
   },
   {
-    id: '12',
+    _id: '12',
     name: 'Streetwear',
     username: 'streetwear',
     userId: '2',
@@ -38,13 +36,11 @@ export const mockShops: ShopProfile[] = [
     productIds: ['4', '5', '6'],
     rating: 4.5,
     ratingCount: 2,
-    followers: ['1', '2', '3'],
+    followers: 3,
     isVerified: false,
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
-  },    
+  },
   {
-    id: '13',
+    _id: '13',
     name: 'Casual Wear',
     username: 'casual_wear',
     userId: '3',
@@ -59,9 +55,7 @@ export const mockShops: ShopProfile[] = [
     productIds: ['7', '8', '9'],
     rating: 4.5,
     ratingCount: 3,
-    followers: ['1', '2', '3'],
+    followers: 3,
     isVerified: true,
-    createdAt: '2021-01-01',
-    updatedAt: '2021-01-01',
   },
 ];

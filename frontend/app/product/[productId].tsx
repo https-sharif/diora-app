@@ -15,15 +15,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Share, Star, ShoppingCart, Store, Plus, Minus, Bookmark } from 'lucide-react-native';
 import { useShopping } from '@/hooks/useShopping';
+import { useAuth } from '@/hooks/useAuth';
 import { mockProducts } from '@/mock/Product';
 import { mockReviews } from '@/mock/Review';
 import { mockUsers } from '@/mock/User';
 import { mockShops } from '@/mock/Shop';
 import { ShopProfile } from '@/types/ShopProfile';
+import { Product } from '@/types/Product';
 import { Review } from '@/types/Review';
 import { Theme } from '@/types/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
-import ProductSlashIcon from '@/icon/ProductSlashIcon';
+import ProductSlashIcon from '@/icon/ProductSlashIcon'
+import axios from 'axios';
+import { API_URL } from '@/constants/api';
 
 const { width } = Dimensions.get('window')
 
@@ -388,7 +392,7 @@ export default function ProductDetailScreen() {
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useShopping();
   const { theme } = useTheme();
   const styles = createStyles(theme);
-  
+  const { token } = useAuth();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
@@ -396,26 +400,50 @@ export default function ProductDetailScreen() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [store, setStore] = useState<ShopProfile | null>(null);
-
-  const product = mockProducts.find(product => product.id === productId);
+  const [product, setProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    if (product) {
-      setSelectedImageIndex(0);
-      setSelectedSize(product.sizes[0]);
-      setSelectedColor(product.variants[0]);
-      setReviews(mockReviews.filter(review => review.targetId === productId && review.targetType === 'product'));
-      const shop = mockShops.find(shop => shop.id === product.shopId);
-      setStore(shop || null);
-      setLoading(false);
-    }
-  }, [product]);
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${API_URL}/api/product/${productId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if(!response.data.status) {
+          Alert.alert('Error', response.data.message);
+          return;
+        }
+
+        setProduct(response.data.product);
+        setStore(response.data.product.shopId);
+      } catch (error) {
+        console.error('Error fetching product:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId]);
 
   useEffect(() => {
     if (product && selectedImageIndex >= product.imageUrl.length) {
       setSelectedImageIndex(0);
     }
   }, [selectedImageIndex]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading product...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!product) {
     return (
@@ -452,7 +480,7 @@ export default function ProductDetailScreen() {
   );
 
   const renderReview = ({ item }: { item: Review }) => {
-    const user = mockUsers.find(user => user.id === item.userId);
+    const user = mockUsers.find(user => user._id === item.userId);
     return (
     <View style={styles.reviewItem}>
       <View style={styles.reviewHeader}>
@@ -477,16 +505,6 @@ export default function ProductDetailScreen() {
   );
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading product...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -505,7 +523,7 @@ export default function ProductDetailScreen() {
             <Bookmark
               size={24}
               color={theme.text}
-              fill={isInWishlist(product.id) ? theme.text : 'transparent'}
+              fill={isInWishlist(product._id) ? theme.text : 'transparent'}
             />
           </TouchableOpacity>
         </View>
@@ -535,7 +553,7 @@ export default function ProductDetailScreen() {
 
         {/* Product Info */}
         <View style={styles.productInfo}>
-          <Text style={styles.productBrand}>{product.brand}</Text>
+          <Text style={styles.productBrand}>{product.shopId.name}</Text>
           <Text style={styles.productName}>{product.name}</Text>
           <View style={styles.priceContainer}>
             <Text style={styles.productPrice}>${(product.discount && product.discount > 0 ? (product.price * (1 - product.discount / 100)).toFixed(2) : product.price)}</Text>
@@ -553,7 +571,7 @@ export default function ProductDetailScreen() {
                   fill={i < Math.floor(product.rating) ? '#FFD700' : 'transparent'}
                 />
               ))}
-              <Text style={styles.ratingText}>{(product.rating / reviews.length).toFixed(1)} ({reviews.length} reviews)</Text>
+              <Text style={styles.ratingText}>{(product.rating / (product.reviewCount || 1)).toFixed(1)} ({product.reviewCount} reviews)</Text>
             </View>
           </View>
 
@@ -572,10 +590,10 @@ export default function ProductDetailScreen() {
                   <Star size={14} color="#FFD700" fill="#FFD700" />
                   <Text style={styles.storeRatingText}>{store?.rating}</Text>
                 </View>
-                <Text style={styles.storeFollowers}>{store?.followers.length} followers</Text>
+                <Text style={styles.storeFollowers}>{store?.followers} followers</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.visitStoreButton} onPress={() => router.push(`/shop/${store?.id}`)}>
+            <TouchableOpacity style={styles.visitStoreButton} onPress={() => router.push(`/shop/${store?._id}`)}>
               <Store size={16} color="#000" />
               <Text style={styles.visitStoreText}>Visit</Text>
             </TouchableOpacity>
